@@ -11,8 +11,13 @@ test("erases, writes, reports progress, and starts a Micronucleus v2 device [AC-
     deviceVersionMajor: 2,
     deviceVersionMinor: 6,
     opened: false,
+    configuration: { interfaces: [{ interfaceNumber: 0, claimed: false }] },
     open: vi.fn(async function (this: { opened: boolean }) { this.opened = true; }),
     close: vi.fn(async function (this: { opened: boolean }) { this.opened = false; }),
+    selectConfiguration: vi.fn(async () => {}),
+    claimInterface: vi.fn(async function (this: { configuration: { interfaces: Array<{ claimed: boolean }> } }) {
+      this.configuration.interfaces[0].claimed = true;
+    }),
     controlTransferIn: vi.fn(async () => ({ data: new DataView(info.buffer), status: "ok" as const })),
     controlTransferOut: vi.fn(async (setup: USBControlTransferParameters) => {
       requests.push(setup.request);
