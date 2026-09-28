@@ -1,12 +1,16 @@
 # AdMouse Flasher
 
+[![CI](https://github.com/kevan1/admouse-flasher/actions/workflows/ci.yml/badge.svg)](https://github.com/kevan1/admouse-flasher/actions/workflows/ci.yml)
+
 Browser-based configurator and firmware installer for the single-button AdMouse controller.
+
+**🚀 [Try the live demo →](https://admouse-flasher.vercel.app)**
 
 **Status:** Beta. Tested with an ATtiny85 controller using the Micronucleus bootloader.
 
-## Live application
+<!-- TODO: Add demo GIF showing the configuration and flashing workflow -->
 
-[Open AdMouse Flasher](https://admouse-flasher.vercel.app)
+## Requirements
 
 The production site requires desktop Google Chrome or Microsoft Edge because firmware installation uses WebUSB. Safari and Firefox do not currently expose the required API.
 
@@ -81,6 +85,29 @@ The build script installs the Digistump AVR core when needed, downloads the pinn
 The firmware contains an `ADM!` configuration block. The web application validates its version and action count, writes the selected action, and updates the checksum before flashing.
 
 ## Architecture
+
+The AdMouse Flasher follows a browser-to-device pipeline where firmware patching happens entirely client-side before flashing via WebUSB:
+
+```mermaid
+flowchart LR
+    A[Browser UI] -->|User selects action| B[Config Patcher]
+    B -->|Patches firmware binary| C[Micronucleus Protocol]
+    C -->|WebUSB API| D[ATtiny85 Device]
+    
+    style A fill:#e1f5ff
+    style B fill:#fff4e1
+    style C fill:#ffe1f5
+    style D fill:#e1ffe1
+```
+
+**Components:**
+
+- **Browser UI** (`components/FirmwareFlasher.tsx`): Accessible interface for action selection and device connection
+- **Config Patcher** (`lib/firmware-config.ts`): Validates and patches the firmware configuration block with the selected action
+- **Micronucleus Protocol** (`lib/micronucleus.ts`): Implements the bootloader communication protocol over WebUSB
+- **ATtiny85 Device**: Physical hardware running the Micronucleus bootloader that receives and installs the patched firmware
+
+**Directory structure:**
 
 - `app/`: Next.js application shell and responsive styles
 - `components/FirmwareFlasher.tsx`: accessible configuration interface
